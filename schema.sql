@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Pilot (
     MobilePhone                 TEXT,
     Email                       TEXT,
     EmploymentStartDate         TEXT NOT NULL,
-    EmploymentEndDate           TEXT NOT NULL,
+    EmploymentEndDate           TEXT,
     IsActive                    INTEGER NOT NULL DEFAULT 1 CHECK (IsActive IN (0, 1))
 );
 
