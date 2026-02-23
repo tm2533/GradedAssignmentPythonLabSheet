@@ -12,3 +12,7 @@ The CLI application can be tested via GitHub Codespaces. Install the following e
 - `SQLite` (by alexcvzz)
 - `SQLite Viewer` (by Florian Klampfer)
 
+To launch the application, run the following commands: 
+- `cd /workspaces/GradedAssignmentPythonLabSheet` - navigate to the root folder of the reposity
+- `python main.py` - launch the application
+
