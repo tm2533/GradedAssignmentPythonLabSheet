@@ -4,3 +4,11 @@ The repository contains the solution for the *Graded Assignment: Python Lab Shee
 
 The structure of the repository: 
 - `main.py` - description TBA
+- `schema.sql` - description TBA
+- `flight_management.db` - description TBA
+
+The CLI application can be tested via GitHub Codespaces. Install the following extensions in VS Code:
+- Python (by Microsoft)
+- SQLite (by alexcvzz)
+- SQLite Viewer (by Florian Klampfer)
+
