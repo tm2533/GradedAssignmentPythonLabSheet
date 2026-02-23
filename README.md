@@ -8,7 +8,7 @@ The structure of the repository:
 - `flight_management.db` - description TBA
 
 The CLI application can be tested via GitHub Codespaces. Install the following extensions in VS Code:
-- Python (by Microsoft)
-- SQLite (by alexcvzz)
-- SQLite Viewer (by Florian Klampfer)
+- `Python` (by Microsoft)
+- `SQLite` (by alexcvzz)
+- `SQLite Viewer` (by Florian Klampfer)
 
