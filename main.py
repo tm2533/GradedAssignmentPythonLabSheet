@@ -155,6 +155,11 @@ def populate_db(conn: sqlite3.Connection) -> None:
                         flights)
         print("Inserted data into Flight table successfully.")
 
+        # Flight_Pilot table
+        conn.executemany("INSERT INTO Flight_Pilot(FlightId, PilotId) VALUES (?, ?);",
+                        flight_pilots)
+        print("Inserted data into Flight_Pilot table successfully.")
+
 # ==============================================================
 # Main Logic of the program
 # ==============================================================
