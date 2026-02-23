@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS Flight (
 
     FOREIGN KEY (AircraftId) REFERENCES Aircraft(AifcraftId) ON UPDATE CASCADE ON DELETE RESTRICT,
     FOREIGN KEY (DepartureAirportId) REFERENCES Destination(DestinationId) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (DestinationAiportId) REFERENCES Destination(DestinationId) ON UPDATE CASCADE ON DELETE RESTRICT
+    FOREIGN KEY (DestinationAirportId) REFERENCES Destination(DestinationId) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 -- ========================================================================
@@ -59,7 +59,6 @@ CREATE TABLE IF NOT EXISTS Aircraft (
     LastCheckDate       TEXT NOT NULL
 );
 
-
 -- ========================================================================
 -- Destination table
 -- ========================================================================
@@ -71,3 +70,10 @@ CREATE TABLE IF NOT EXISTS Destination (
     Country             TEXT NOT NULL,
     Terminal
 );
+
+-- ========================================================================
+-- Possible further improvements
+-- ========================================================================
+/*
+1. Add indices on the frequently queried columns for more efficient queries
+*/
