@@ -161,13 +161,72 @@ def populate_db(conn: sqlite3.Connection) -> None:
         print("Inserted data into Flight_Pilot table successfully.")
 
 # ==============================================================
+# Define functions for menu options
+# ==============================================================
+def add_new_flight() -> None:
+    pass 
+
+def view_flights_by_criteria() -> None:
+    pass
+
+def update_flight_information() -> None:
+    pass
+
+def assign_pilot_to_flight() -> None:
+    pass
+
+def view_pilot_schedule() -> None:
+    pass
+
+def view_destination_information() -> None:
+    pass
+
+def update_destination_information() -> None:
+    pass
+
+# ==============================================================
 # Main Logic of the program
 # ==============================================================
 def main() -> None:
     """Main function that initialises the Flight Management database and launches the CLI for user interaction."""
-    with connect_db() as conn:
-        initialise_db(conn)
-        populate_db(conn)
+    # with connect_db() as conn:
+    #     initialise_db(conn)
+    #     populate_db(conn)
+
+    # Menu interface options
+    menu = {
+        "\t0": ("Exit", None),
+        "\t1": ("Add a New Flight", add_new_flight),
+        "\t2": ("View Flights by Criteria", view_flights_by_criteria),
+        "\t3": ("Update Flight Information", update_flight_information),
+        "\t4": ("Assign Pilot to Flight", assign_pilot_to_flight),
+        "\t5": ("View Pilot Schedule", view_pilot_schedule),
+        "\t6": ("View Destination Information", view_destination_information),
+        "\t7": ("Update Destination Information", update_destination_information),
+    }
+
+    # Display menu options
+    while True:
+        print("="*50)
+        print("Flight Management System Menu:")
+        print("="*50)
+
+        # Print the sorted menu options
+        for k in sorted(menu.keys()):
+            print(f"{k}. {menu[k][0]}")
+
+        # Get user input
+        choice = input("\nPlease, select one of the above options (0-7): ").strip()
+
+        # Specify user interaction logic for each menu option
+        if choice == "0":
+            print("\nTerminating the session. Goodbye!\n")
+            break
+        
+        command = menu.get(choice)
+        if not command:
+            print(f"\nInvalid menu option selected: {choice}. Please, try again.\n")
+            continue
 
 if __name__ == "__main__":
     main()
