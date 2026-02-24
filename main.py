@@ -230,14 +230,32 @@ def add_new_flight(conn: sqlite3.Connection) -> None:
             print("\t\tError. Destination airport code not found in the database. Please, try again.")
 
     # DepartureTime - TEXT NOT NULL
+    # TODO: Implement a validation check for the time format.
     departure_time = get_non_empty_input("\tDeparture Time (e.g., 2026-03-01 10:30:00.000): ")
 
     # DestinationArrivalTime - TEXT NOT NULL
+    # TODO: Implement a validation check for the time format.
+    # TODO: Arrival time must be after the departure time. Implement a validation check for this condition.
     destination_arrival_time = get_non_empty_input("\tDestination Arrival Time (e.g., 2026-03-01 18:05:00.000): ")
 
     # FlightStatus - TEXT NOT NULL CHECK (FlightStatus IN ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED'))
+    valid_flight_statuses = ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED')
+    while True:
+        flight_status = get_non_empty_input(f"\tFlight Status {valid_flight_statuses}: ").upper()
+        if flight_status in valid_flight_statuses:
+            break
+        else:
+            print(f"\t\tError. Invalid flight status. Please, select one of the following: {valid_flight_statuses}.")
 
-
+    # Add the new flight to the database.
+    with conn:
+            conn.execute(
+                """
+                INSERT INTO Flight(FlightNumber, AircraftId, DepartureAirportId, DestinationAirportId, DepartureTime, DestinationArrivalTime, FlightStatus)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                """,
+                (flight_number, aircraft_id, departure_airport_id, destination_airport_id, departure_time, destination_arrival_time, flight_status),
+            )
     print("\nNew flight added successfully.\n")
 
 def view_flights_by_criteria() -> None:
