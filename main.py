@@ -3,6 +3,7 @@
 # ==============================================================
 import sqlite3
 from pathlib import Path
+from datetime import datetime
 
 # ==============================================================
 # Parameters
@@ -182,6 +183,20 @@ def get_non_empty_integer_input(value: str) -> int:
         else:
             print("\t\tInput cannot be empty. Please, try again.")
 
+def get_valid_datetime_input(value: str) -> datetime:
+    """Helper function that ensures user input is a non-empty and valid datetime string."""
+    while True:
+        s = input(value).strip()
+        if not s:
+            print("\t\tInput cannot be empty. Please, try again.")
+            continue
+
+        try:
+            dt = datetime.strptime(s, "%Y-%m-%d %H:%M")
+            return dt
+        except ValueError:
+            print("\t\tInvalid datetime format. Correct format: YYYY-MM-DD HH:MM, e.g., 2026-03-01 10:30. Please, try again.")
+
 # ==============================================================
 # Define functions for menu options
 # ==============================================================
@@ -230,14 +245,21 @@ def add_new_flight(conn: sqlite3.Connection) -> None:
             print("\t\tError. Destination airport code not found in the database. Please, try again.")
 
     # DepartureTime - TEXT NOT NULL
-    # TODO: Implement a validation check for the time format.
-    departure_time = get_non_empty_input("\tDeparture Time (e.g., 2026-03-01 10:30:00.000): ")
+    departure_datetime = get_valid_datetime_input("\tDeparture Time (e.g., 2026-02-01 10:30): ")
+    # Covert time from datetime object to string in the correct format for SQLite
+    departure_time = departure_datetime.strftime("%Y-%m-%d %H:%M")
 
     # DestinationArrivalTime - TEXT NOT NULL
-    # TODO: Implement a validation check for the time format.
-    # TODO: Arrival time must be after the departure time. Implement a validation check for this condition.
-    destination_arrival_time = get_non_empty_input("\tDestination Arrival Time (e.g., 2026-03-01 18:05:00.000): ")
-
+    while True:
+        destination_arrival_datetime = get_valid_datetime_input("\tDestination Arrival Time (e.g., 2026-02-01 13:30): ")
+        # Check that the destination arrival time is after the departure time.
+        if destination_arrival_datetime > departure_datetime:
+            # Covert time from datetime object to string in the correct format for SQLite
+            destination_arrival_time = destination_arrival_datetime.strftime("%Y-%m-%d %H:%M")
+            break
+        else:
+            print("\t\tError. Destination arrival time must be after the departure time. Please, try again.")
+    
     # FlightStatus - TEXT NOT NULL CHECK (FlightStatus IN ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED'))
     valid_flight_statuses = ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED')
     while True:
