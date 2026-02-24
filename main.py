@@ -160,10 +160,85 @@ def populate_db(conn: sqlite3.Connection) -> None:
         print("Inserted data into Flight_Pilot table successfully.")
 
 # ==============================================================
+# Define helper functions 
+# ==============================================================
+def get_non_empty_input(value: str) -> str:
+    """Helper function that ensures user input is a not empty string."""
+    while True:
+        s = input(value).strip()
+        if s:
+            return s
+        print("\t\tInput cannot be empty. Please, try again.")
+
+def get_non_empty_integer_input(value: str) -> int:
+    """Helper function that ensures user input is a non-empty integer."""
+    while True:
+        s = input(value).strip()
+        if s:
+            try:
+                return int(s)
+            except ValueError:
+                print("\t\tInput must be an integer, e.g., 123. Please, try again.")
+        else:
+            print("\t\tInput cannot be empty. Please, try again.")
+
+# ==============================================================
 # Define functions for menu options
 # ==============================================================
-def add_new_flight() -> None:
-    pass 
+def add_new_flight(conn: sqlite3.Connection) -> None:
+    """Add a new flight to the database by collecting necessary information from the user."""
+    print("\nTo add a new flight, please provide the following information:")
+
+    # FlightNumber - TEXT NOT NULL UNIQUE
+    # TODO: Write a test check the uniqueness of the Flight number provided by the user.
+    flight_number = get_non_empty_input("\tFlight Number (e.g., AA123): ")
+
+    # AircraftId - INTEGER NOT NULL
+    # TODO: Encapsulate the below lodgic into a more generic, reusable helper function.
+    while True:
+        aircraft_model = get_non_empty_input("\tAircraft Model (e.g., Airbus A320-200): ")
+        search_for_aircraft_id = conn.execute("SELECT AircraftId FROM Aircraft WHERE Model = ? COLLATE NOCASE;", (aircraft_model,)).fetchone()
+        
+        if search_for_aircraft_id:
+            aircraft_id = search_for_aircraft_id[0]
+            break
+        else:
+            print("\t\tError. Aircraft model not found in the database. Please, try again.")
+    
+    # DepartureAirportId - INTEGER NOT NULL
+    # TODO: Encapsulate the below lodgic into a more generic, reusable helper function.
+    while True:
+        departure_airport_code = get_non_empty_input("\tDeparture Airport Code (e.g., LHR): ")
+        search_for_departure_aiport_id = conn.execute("SELECT DestinationId FROM Destination WHERE AirportCode = ? COLLATE NOCASE;", (departure_airport_code,)).fetchone()
+        
+        if search_for_departure_aiport_id:
+            departure_airport_id = search_for_departure_aiport_id[0]
+            break
+        else:
+            print("\t\tError. Departure airport code not found in the database. Please, try again.")
+
+    # DestinationAirportId - INTEGER NOT NULL
+    # TODO: Encapsulate the below lodgic into a more generic, reusable helper function.
+    while True:
+        destination_airport_code = get_non_empty_input("\tDestination Airport Code (e.g., JFK): ")
+        search_for_destination_airport_id = conn.execute("SELECT DestinationId FROM Destination WHERE AirportCode = ? COLLATE NOCASE;", (destination_airport_code,)).fetchone()
+
+        if search_for_destination_airport_id:
+            destination_airport_id = search_for_destination_airport_id[0]
+            break
+        else:
+            print("\t\tError. Destination airport code not found in the database. Please, try again.")
+
+    # DepartureTime - TEXT NOT NULL
+    departure_time = get_non_empty_input("\tDeparture Time (e.g., 2026-03-01 10:30:00.000): ")
+
+    # DestinationArrivalTime - TEXT NOT NULL
+    destination_arrival_time = get_non_empty_input("\tDestination Arrival Time (e.g., 2026-03-01 18:05:00.000): ")
+
+    # FlightStatus - TEXT NOT NULL CHECK (FlightStatus IN ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED'))
+
+
+    print("\nNew flight added successfully.\n")
 
 def view_flights_by_criteria() -> None:
     pass
@@ -188,20 +263,20 @@ def update_destination_information() -> None:
 # ==============================================================
 def main() -> None:
     """Main function that initialises the Flight Management database and launches the CLI for user interaction."""
-    # with connect_db() as conn:
-    #     initialise_db(conn)
-    #     populate_db(conn)
+    with connect_db() as conn:
+        initialise_db(conn)
+        populate_db(conn)
 
     # Menu interface options
     menu = {
-        "\t0": ("Exit", None),
-        "\t1": ("Add a New Flight", add_new_flight),
-        "\t2": ("View Flights by Criteria", view_flights_by_criteria),
-        "\t3": ("Update Flight Information", update_flight_information),
-        "\t4": ("Assign Pilot to Flight", assign_pilot_to_flight),
-        "\t5": ("View Pilot Schedule", view_pilot_schedule),
-        "\t6": ("View Destination Information", view_destination_information),
-        "\t7": ("Update Destination Information", update_destination_information),
+        "0": ("Exit", None),
+        "1": ("Add a New Flight", add_new_flight),
+        "2": ("View Flights by Criteria", view_flights_by_criteria),
+        "3": ("Update Flight Information", update_flight_information),
+        "4": ("Assign Pilot to Flight", assign_pilot_to_flight),
+        "5": ("View Pilot Schedule", view_pilot_schedule),
+        "6": ("View Destination Information", view_destination_information),
+        "7": ("Update Destination Information", update_destination_information),
     }
 
     # Display menu options
@@ -212,7 +287,7 @@ def main() -> None:
 
         # Print the sorted menu options
         for k in sorted(menu.keys()):
-            print(f"{k}. {menu[k][0]}")
+            print(f"\t{k}. {menu[k][0]}")
 
         # Get user input
         choice = input("\nPlease, select one of the above options (0-7): ").strip()
@@ -226,6 +301,9 @@ def main() -> None:
         if not command:
             print(f"\nInvalid menu option selected: {choice}. Please, try again.\n")
             continue
+
+        # Execute user-selected command
+        command[1](conn)
 
 if __name__ == "__main__":
     main()
