@@ -12,6 +12,11 @@ DB_PATH = Path("./flight_management.db")
 SCHEMA_SQL_PATH = Path("./schema.sql")
 
 # ==============================================================
+# Global variables
+# ==============================================================
+valid_flight_statuses = ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED')
+
+# ==============================================================
 # Initialise database
 # ==============================================================
 def connect_db() -> sqlite3.Connection:
@@ -200,11 +205,6 @@ def get_valid_datetime_input(value: str) -> datetime:
 # ==============================================================
 # Define functions for menu options
 # ==============================================================
-# ==============================================================
-# Global variables
-# ==============================================================
-valid_flight_statuses = ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED')
-
 # ==============================================================
 # add_new_flight() - Function allows the user to add a new flight to the database by collecting necessary information from the user.
 # ==============================================================
