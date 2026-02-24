@@ -200,8 +200,16 @@ def get_valid_datetime_input(value: str) -> datetime:
 # ==============================================================
 # Define functions for menu options
 # ==============================================================
+# ==============================================================
+# Global variables
+# ==============================================================
+valid_flight_statuses = ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED')
+
+# ==============================================================
+# add_new_flight() - Function allows the user to add a new flight to the database by collecting necessary information from the user.
+# ==============================================================
 def add_new_flight(conn: sqlite3.Connection) -> None:
-    """Add a new flight to the database by collecting necessary information from the user."""
+    """Function allows the user to add a new flight to the database by collecting necessary information from the user."""
     print("\nTo add a new flight, please provide the following information:")
 
     # FlightNumber - TEXT NOT NULL UNIQUE
@@ -261,7 +269,6 @@ def add_new_flight(conn: sqlite3.Connection) -> None:
             print("\t\tError. Destination arrival time must be after the departure time. Please, try again.")
     
     # FlightStatus - TEXT NOT NULL CHECK (FlightStatus IN ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED'))
-    valid_flight_statuses = ('SCHEDULED', 'DELAYED', 'CANCELLED', 'DEPARTED', 'ARRIVED')
     while True:
         flight_status = get_non_empty_input(f"\tFlight Status {valid_flight_statuses}: ").upper()
         if flight_status in valid_flight_statuses:
@@ -280,8 +287,60 @@ def add_new_flight(conn: sqlite3.Connection) -> None:
             )
     print("\nNew flight added successfully.\n")
 
-def view_flights_by_criteria() -> None:
-    pass
+# ==============================================================
+# add_new_flight() - Function allows the user to filter the flights based on several criteria.
+# ==============================================================
+def view_flights_by_criteria(conn: sqlite3.Connection) -> None:
+    """
+    Function allows the user to filter the flights based on several criteria:
+    - Destination Airport Code
+    - Departure Date
+    - Flight Status.
+
+    User can press Enter to skip any of the above criteria. If all criteria are skipped, no flights will be returned.
+    """
+    print("\nProvide the below details to view the respective flights. Press Enter to skip any criteria.")
+
+    criteria_list = []
+    
+    # Get Destination Aiport Code from the user
+    while True:
+        destination_airport_code = input("\tDestination Airport Code (e.g., JFK): ").strip()
+        if destination_airport_code == "":
+            break
+        else:
+            search_for_destination_airport_code = conn.execute("SELECT AirportCode FROM Destination WHERE AirportCode = ? COLLATE NOCASE;", (destination_airport_code,)).fetchone()
+            if search_for_destination_airport_code:
+                break
+            else:
+                print("\t\tError. Destination Airport Code not found in the database. Please, try again.")
+    criteria_list.append(destination_airport_code)
+
+    # Get Departure Date from the user
+    while True:
+        departure_datetime = input("\tDeparture Time (e.g., 2026-02-01 10:30): ").strip()
+        if departure_datetime == "":
+            break
+        else:
+            try:
+                departure_datetime = datetime.strptime(departure_datetime, "%Y-%m-%d %H:%M")
+                # Convert time from datetime object to string in the correct format for SQLite
+                departure_time = departure_datetime.strftime("%Y-%m-%d %H:%M")
+                break
+            except ValueError:
+                print("\t\tInvalid datetime format. Correct format: YYYY-MM-DD HH:MM, e.g., 2026-03-01 10:30. Please, try again.")
+        
+    # Get Flight Status from the user
+    while True:
+        flight_status = input(f"\tFlight Status {valid_flight_statuses}: ").strip()
+        if flight_status == "":
+            break
+        else:
+            flight_status = flight_status.upper()
+            if flight_status in valid_flight_statuses:
+                break
+            else:
+                print(f"\t\tError. Invalid flight status. Please, select one of the following: {valid_flight_statuses}.")
 
 def update_flight_information() -> None:
     pass
