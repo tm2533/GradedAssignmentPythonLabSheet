@@ -482,8 +482,47 @@ def update_flight_information(conn: sqlite3.Connection) -> None:
     print(f"\t\tDeparture Time: {updated_flight_information[1]}")
     print(f"\t\tFlight Status: {updated_flight_information[2]}")
 
-def assign_pilot_to_flight() -> None:
-    pass
+# ==============================================================
+# assign_pilot_to_flight() - Function allows the user to assign a pilot to a flight.
+# ==============================================================
+def assign_pilot_to_flight(conn: sqlite3.Connection) -> None:
+    """Function allows the user to assign a pilot to a flight."""
+    print("\nTo assign a pilot to a flight, please provide the below information.")
+    
+    # Take the pilot's license number and check that it exists in the database.
+    license_number = get_non_empty_input("\tPilot License Number (e.g., LIC-UK-7Q2A91): ").upper()
+    pilot_information = conn.execute("SELECT LicenseNumber, FirstName, LastName, IsActive, PilotId FROM Pilot WHERE LicenseNumber = ? COLLATE NOCASE;", 
+                                     (license_number,)
+                                     ).fetchone()
+    if not pilot_information:
+        print("\t\tLicense Number not found. Please, try again.")
+        return  
+
+    # Check if the pilot has an active employment status.
+    if not pilot_information[3]: # IsActive column
+        print("\t\tPilot does not have an active employment status. Please, try again.")
+        return
+    
+    # Take the flight number and check that it exists in the database.
+    flight_number = get_non_empty_input("\nEnter the flight number to update(e.g., AA123): ")
+    available_flight_information = conn.execute(
+        "SELECT FlightNumber, DepartureTime, FlightStatus, FlightId FROM Flight WHERE FlightNumber = ? COLLATE NOCASE;",
+        (flight_number,)
+    ).fetchone()
+    if not available_flight_information:
+        print("\tFlight not found. Please, try again.")
+        return
+
+    # Assign the pilot to the flight.
+    try:
+        with conn:
+            conn.execute(
+                "INSERT INTO Flight_Pilot(FlightId, PilotId) VALUES (?, ?);",
+                (available_flight_information[3], pilot_information[4]),
+            )
+        print(f"\t\tPilot {pilot_information[0]} assigned to flight {available_flight_information[0]} successfully.")
+    except sqlite3.IntegrityError as e:
+        print(f"Assignment failed (maybe duplicate assignment): {e}")
 
 # ==============================================================
 # view_pilot_schedule() - Function allows the user to view a selected pilot's schedule.
@@ -534,15 +573,7 @@ def view_pilot_schedule(conn: sqlite3.Connection) -> None:
     # Display the pilot's schedule.
     headers = ["License Number", "Pilot Name", "Flight Number", "Departure Airport", "Destination Airport", "Departure Time", "Destination Arrival Time", "Flight Status"]
     print_pilot_schedule_table(pilot_schedule, headers)
-
-def view_destination_information() -> None:
-    pass
-
-def update_destination_information() -> None:
-    pass
-    
-
-
+ 
 # ==============================================================
 # Main Logic of the program
 # ==============================================================
@@ -560,8 +591,6 @@ def main() -> None:
         "3": ("Update Flight Information", update_flight_information),
         "4": ("Assign Pilot to Flight", assign_pilot_to_flight),
         "5": ("View Pilot Schedule", view_pilot_schedule),
-        "6": ("View Destination Information", view_destination_information),
-        "7": ("Update Destination Information", update_destination_information),
     }
 
     # Display menu options
