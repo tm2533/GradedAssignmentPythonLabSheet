@@ -498,7 +498,7 @@ def assign_pilot_to_flight(conn: sqlite3.Connection) -> None:
 
     # Check if the pilot has an active employment status.
     if not pilot_information[3]: # IsActive column
-        print("\t\tPilot does not have an active employment status. Please, try again.")
+        print("\n\tPilot does not have an active employment status. Please, try again.")
         return
     
     # Take the flight number and check that it exists in the database.
