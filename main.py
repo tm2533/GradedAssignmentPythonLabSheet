@@ -223,7 +223,7 @@ def pretty_printing_flight_information(flight_info_list: list) -> None:
         print(f"\tTerminal: {flight[8]}")
         print("-" * 80)
 
-def print_pilot_schedule_table(rows, headers):
+def print_table(rows, headers):
     """Helper function to display a pilot's schedule in a user-friendly, tabular format."""
     # Combine table headers and underlying data to calculate column widths
     data = [headers] + rows
@@ -572,8 +572,50 @@ def view_pilot_schedule(conn: sqlite3.Connection) -> None:
 
     # Display the pilot's schedule.
     headers = ["License Number", "Pilot Name", "Flight Number", "Departure Airport", "Destination Airport", "Departure Time", "Destination Arrival Time", "Flight Status"]
-    print_pilot_schedule_table(pilot_schedule, headers)
- 
+    print_table(pilot_schedule, headers)
+
+# ==============================================================
+# additional_summary_queries() - Function produces additional summary queries on the created data.
+# ==============================================================
+def additional_summary_queries(conn: sqlite3.Connection) -> None:
+    """Function produces additional summary queries on the created data."""
+    print("\nSummary Information.")
+
+    # Number of flight to each destination
+    print("\n1) Number of flights to each destination")
+    n_flights_to_each_destination = conn.execute(
+        """
+        SELECT
+          d.AirportCode,
+          d.City,
+          d.Country,
+          COUNT(*) AS FlightsToDestination
+        FROM Flight AS f
+        LEFT JOIN Destination AS d 
+            ON d.DestinationId = f.DestinationAirportId
+        GROUP BY d.DestinationId
+        ORDER BY FlightsToDestination DESC, d.AirportCode ASC;
+        """
+    ).fetchall()
+    print_table(n_flights_to_each_destination, ["Airport Code", "City", "Country", "Flights To Destination"])
+
+    # Number of flights assigned to each pilot
+    print("2) Number of flights assigned to each pilot")
+    n_flights_assigned_to_pilot = conn.execute(
+        """
+        SELECT
+          p.LicenseNumber,
+          p.FirstName || ' ' || COALESCE(p.MiddleName || ' ', '') || p.LastName AS PilotName,
+          COUNT(fp.FlightId) AS AssignedFlights
+        FROM Pilot AS p
+        LEFT JOIN Flight_Pilot AS fp 
+            ON fp.PilotId = p.PilotId
+        GROUP BY p.PilotId
+        ORDER BY AssignedFlights DESC, p.LicenseNumber ASC;
+        """
+    ).fetchall()
+    print_table(n_flights_assigned_to_pilot, ["License Number", "Pilot Name", "Assigned Flights"])
+
 # ==============================================================
 # Main Logic of the program
 # ==============================================================
@@ -591,6 +633,7 @@ def main() -> None:
         "3": ("Update Flight Information", update_flight_information),
         "4": ("Assign Pilot to Flight", assign_pilot_to_flight),
         "5": ("View Pilot Schedule", view_pilot_schedule),
+        "6": ("Additional Summary Queries", additional_summary_queries),
     }
 
     # Display menu options
