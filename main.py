@@ -396,8 +396,75 @@ def view_flights_by_criteria(conn: sqlite3.Connection) -> None:
     filtered_table_rows = conn.execute(template_sql_query_for_viewing_flights, criteria_list).fetchall()
     pretty_printing_flight_information(filtered_table_rows)
 
-def update_flight_information() -> None:
-    pass
+# ==============================================================
+# update_flight_information() - Function allows the user to update flight information (e.g., departure date and/or status) in the database.
+# ==============================================================
+def update_flight_information(conn: sqlite3.Connection) -> None:
+    """
+    Function allows the user to update flight information (e.g., departure date and/or status) in the database.
+    """
+    flight_number = get_non_empty_input("\nEnter the flight number to update(e.g., AA123): ")
+
+    available_flight_information = conn.execute(
+        "SELECT FlightNumber, DepartureTime, FlightStatus, FlightId FROM Flight WHERE FlightNumber = ? COLLATE NOCASE;",
+        (flight_number,)
+    ).fetchone()
+
+    # Check if the Flight Number provided by the users exists in the database.
+    if not available_flight_information:
+        print("\tFlight not found. Please, try again.")
+        return
+    
+    # Display information about the flight.
+    print("\n\tFlight information:")
+    print(f"\t\tFlight number: {available_flight_information[0]}")
+    print(f"\t\tDeparture Time: {available_flight_information[1]}")
+    print(f"\t\tFlight Status: {available_flight_information[2]}")
+
+    # Get new Departure Time and/or Flight Status.
+    # TODO: Introduce validity check for the new Departure Time.
+    new_departure_time = input("\n\tEnter new Departure Time (e.g., 2026-02-01 10:30) or press Enter to skip: ").strip()
+
+    # TODO: Introduce validity check for the new Flight Status.
+    new_flight_status = input(f"\tEnter new Flight Status (e.g., (SCHEDULED, DELAYED, CANCELLED, DEPARTED, ARRIVED)) or press Enter to skip: ").strip().upper()
+
+    updates = []
+    params_for_updates = []
+
+    if new_departure_time:
+        updates.append("DepartureTime = ?")
+        params_for_updates.append(new_departure_time)
+    if new_flight_status:
+        updates.append("FlightStatus = ?")
+        params_for_updates.append(new_flight_status)
+    
+    if not updates:
+        print("\t\tNo new information provided. Flight information remains unchanged.")    
+        return
+    else:
+        params_for_updates.append(available_flight_information[3]) # FlightId for the WHERE-clause
+    
+    # Update the Flight Information.
+    try:
+        with conn:
+            conn.execute(
+                f"UPDATE Flight SET {', '.join(updates)} WHERE FlightId = ?;",
+                params_for_updates,
+            )
+    except sqlite3.IntegrityError as e:
+        print(f"Error. Update failed: {e}")
+    
+    # Display the updated flight information.
+    updated_flight_information = conn.execute(
+        "SELECT FlightNumber, DepartureTime, FlightStatus, FlightId FROM Flight WHERE FlightNumber = ? COLLATE NOCASE;",
+        (flight_number,)
+    ).fetchone()
+    
+    # Display information about the flight.
+    print("\n\tUpdated Flight information:")
+    print(f"\t\tFlight number: {updated_flight_information[0]}")
+    print(f"\t\tDeparture Time: {updated_flight_information[1]}")
+    print(f"\t\tFlight Status: {updated_flight_information[2]}")
 
 def assign_pilot_to_flight() -> None:
     pass
@@ -410,6 +477,8 @@ def view_destination_information() -> None:
 
 def update_destination_information() -> None:
     pass
+    
+
 
 # ==============================================================
 # Main Logic of the program
@@ -441,6 +510,8 @@ def main() -> None:
         # Print the sorted menu options
         for k in sorted(menu.keys()):
             print(f"\t{k}. {menu[k][0]}")
+        
+        print("="*50)
 
         # Get user input
         choice = input("\nPlease, select one of the above options (0-7): ").strip()
