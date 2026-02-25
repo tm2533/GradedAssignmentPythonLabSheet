@@ -325,7 +325,7 @@ def add_new_flight(conn: sqlite3.Connection) -> None:
     print("\nNew flight added successfully.\n")
 
 # ==============================================================
-# add_new_flight() - Function allows the user to filter the flights based on several criteria.
+# view_flights_by_criteria() - Function allows the user to filter the flights based on several criteria.
 # ==============================================================
 def view_flights_by_criteria(conn: sqlite3.Connection) -> None:
     """
@@ -380,8 +380,6 @@ def view_flights_by_criteria(conn: sqlite3.Connection) -> None:
                 break
             else:
                 print(f"\t\tError. Invalid flight status. Please, select one of the following: {valid_flight_statuses}.")
-
-    print(criteria_list)
 
     # Specify template SQL query that will be amended depending on the chosen criteria.
     template_sql_query_for_viewing_flights = """
@@ -638,6 +636,7 @@ def main() -> None:
 
     # Display menu options
     while True:
+        print()
         print("="*50)
         print("Flight Management System Menu:")
         print("="*50)
@@ -649,7 +648,7 @@ def main() -> None:
         print("="*50)
 
         # Get user input
-        choice = input("\nPlease, select one of the above options (0-7): ").strip()
+        choice = input("\nPlease, select one of the above options (0-6): ").strip()
 
         # Specify user interaction logic for each menu option
         if choice == "0":
