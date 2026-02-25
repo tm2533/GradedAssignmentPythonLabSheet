@@ -223,6 +223,22 @@ def pretty_printing_flight_information(flight_info_list: list) -> None:
         print(f"\tTerminal: {flight[8]}")
         print("-" * 80)
 
+def print_pilot_schedule_table(rows, headers):
+    """Helper function to display a pilot's schedule in a user-friendly, tabular format."""
+    # Combine table headers and underlying data to calculate column widths
+    data = [headers] + rows
+    widths = [max(len(str(row[i])) for row in data) for i in range(len(headers))]
+
+    # Print table headers
+    print()
+    print(" | ".join(str(headers[i]).ljust(widths[i]) for i in range(len(headers))))
+    print("-" * (sum(widths) + 3 * (len(headers) - 1)))
+
+    # Print table content
+    for row in rows:
+        print(" | ".join(str(row[i]).ljust(widths[i]) for i in range(len(row))))
+    print()
+
 # ==============================================================
 # Define functions for menu options
 # ==============================================================
@@ -469,8 +485,55 @@ def update_flight_information(conn: sqlite3.Connection) -> None:
 def assign_pilot_to_flight() -> None:
     pass
 
-def view_pilot_schedule() -> None:
-    pass
+# ==============================================================
+# view_pilot_schedule() - Function allows the user to view a selected pilot's schedule.
+# ==============================================================
+def view_pilot_schedule(conn: sqlite3.Connection) -> None:
+    """Function allows the user to view a selected pilot's schedule."""
+    print("\nTo view a pilot's schedule, please provide the below information.")
+
+    license_number = get_non_empty_input("\tPilot License Number (e.g., LIC-UK-7Q2A91): ").upper()
+
+    # Check if the License Number exists in the database.
+    pilot_information = conn.execute("SELECT LicenseNumber, FirstName, LastName FROM Pilot WHERE LicenseNumber = ? COLLATE NOCASE;", 
+                                     (license_number,)
+                                     ).fetchone()
+
+    # Check if the Flight Number provided by the users exists in the database.
+    if not pilot_information:
+        print("\t\tLicense Number not found. Please, try again.")
+        return   
+
+    # Get the pilot's schedule.
+    pilot_schedule = conn.execute(
+        """
+        SELECT
+          p.LicenseNumber as "License Number",
+          p.FirstName || ' ' || COALESCE(p.MiddleName || ' ', '') || p.LastName AS "Pilot Name",
+          f.FlightNumber,
+          da.AirportCode AS DepartureAirport,
+          aa.AirportCode AS DestinationAirport,
+          f.DepartureTime,
+          f.DestinationArrivalTime,
+          f.FlightStatus
+        FROM Pilot AS p
+        LEFT JOIN Flight_Pilot AS fp 
+            ON fp.PilotId = p.PilotId
+        LEFT JOIN Flight AS f 
+            ON f.FlightId = fp.FlightId
+        LEFT JOIN Destination AS da 
+            ON da.DestinationId = f.DepartureAirportId
+        LEFT JOIN Destination AS aa 
+            ON aa.DestinationId = f.DestinationAirportId
+        WHERE p.LicenseNumber = ?
+        ORDER BY f.DepartureTime ASC;
+        """,
+        (license_number,),
+    ).fetchall()                                 
+
+    # Display the pilot's schedule.
+    headers = ["License Number", "Pilot Name", "Flight Number", "Departure Airport", "Destination Airport", "Departure Time", "Destination Arrival Time", "Flight Status"]
+    print_pilot_schedule_table(pilot_schedule, headers)
 
 def view_destination_information() -> None:
     pass
